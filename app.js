@@ -7,6 +7,7 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const authRoute = require('./routes/authRoutes');
 const app = express();
+const userRoute = require('./routes/userRoute');
 require("dotenv").config({ path: path.resolve(__dirname, "./.env") });
 app.use(bodyParser.urlencoded({
     extended: true
@@ -46,6 +47,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/api/team', teamRoute);
 app.use('/api/auth', authRoute);
+
 
 
 module.exports = app;
@@ -100,6 +102,7 @@ app.use('/api/team', teamRoute);
 */
 app.use('/api/team',teamRoute);
 //app.use('/api/auth', authRoute);
+
 
 
 module.exports = app;
