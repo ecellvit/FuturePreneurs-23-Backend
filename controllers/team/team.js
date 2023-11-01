@@ -87,18 +87,19 @@ exports.makeTeam = catchAsync(async (req, res, next) => {
 const Team = require('../../models/teamModel');
 const Token=require('../../models/usertoken')
 const { db } = require('../../models/user');
-//const catchAsync = require('../../utils/catchAsync');
-//const { teamValidation } = require('../../schemas');
-//const AppError = require('../../utils/appError');
-//const { errorCodes } = require('../../utils/constants');
+const catchAsync = require('../../utils/catchAsync');
+const { teamValidation } = require('../../schemas');
+const AppError = require('../../utils/appError');
+const { errorCodes } = require('../../utils/constants');
 const User = require('../../models/user');
 const jwt=require('jsonwebtoken');
-//const { generateTeamToken } = require("./utils");
+const { generateTeamToken } = require("./utils");
+const auth = require('../../middleware/authmiddleware');
 
 exports.getTeam = async (req, res, next) => {
     // console.log("User ID: " + req.user._id);
-    //const user = await User.findById(req.user._id);
-    const user=await User.findOne({email:req.body.leaderEmail});
+    const user = await User.findById(req.user._id);
+    //const user=await User.findOne({email:req.body.leaderEmail});
     if (!user) {
         return next(
             res.status(401).json({ "message": "User Not Found" })
@@ -119,14 +120,14 @@ exports.getTeam = async (req, res, next) => {
 
 
 exports.makeTeam = (async (req, res, next) => {
-    /*
+    
     const { error } = teamValidation(req.body);
     if (error) {
         return next(
             res.status(400).json({ "message": error.message })
         )
     }
-    */
+    
 
     //check whether teamname already taken
     const team_by_name = await Team.findOne({ teamName: req.body.teamName });
@@ -142,12 +143,12 @@ exports.makeTeam = (async (req, res, next) => {
     //         res.status(412).json({ "message": "Team Number Already Exists" })
     //     );
     // };
-    //const userID = req.user._id;
-    //const userID="6521c01ab187c5b6542be48c";
-    //const user = await User.findById(userID);
-    const user = await User.findOne({ mobno: req.body.mobno });
-    console.log(req.body.mobno);
-    console.log(user.mobno);
+    const userID = req.user._id;
+   
+    const user = await User.findById(userID);
+    //const user = await User.findOne({ mobno: req.body.mobno });
+    //onsole.log(req.body.mobno);
+    //console.log(user.mobno);
     console.log(user);
     if (req.body.leaderEmail !== user.email) {
         return next(
@@ -172,24 +173,31 @@ exports.makeTeam = (async (req, res, next) => {
         currentRound: "Not Started",
         members:req.body.members
     }).save();
+    /*
     const accessToken=jwt.sign({leaderEmail:user.email},"mySecretKey")
     const newToken=await new Token({
         token:accessToken
     }).save();
-    await User.findOneAndUpdate({ email: req.body.leaderEmail }, { $set: { hasFilledDetails: true } })
+    */
+    //await User.findOneAndUpdate({ email: req.body.leaderEmail }, { $set: { hasFilledDetails: true } })
     console.log(req.body);
     res.status(201).json({
         message: "New Team Created Successfully",
         teamId: newTeam._id,
-        accessToken
+       // accessToken
     });
 });
 
 
 exports.deleteTeam=(async(req,res)=>{
-    const leader=await Team.findOne({teamName:req.body.teamName});
-    console.log(req.body.teamName);
+    const userID = req.user._id;
+    const leaders=await User.findById(userID);
+    const leader=await Team.findOne({leaderEmail:leaders.email});
+
     console.log(leader);
+    //console.log(req.body.teamName);
+    //console.log(leader);
+    if(leader){
     if(leader.members.length===0)
     {
         const deleteTeam1 = await Team.findOneAndDelete({ teamName: req.body.teamName });
@@ -205,11 +213,21 @@ exports.deleteTeam=(async(req,res)=>{
             message:"your team is not empty"
         })
     }
-})
+}else{
+    res.status(401).json({
+        message:"only leader can delete the team"
+    })
+}}
+)
 
 
 exports.removeMember=(async(req,res,next)=>{
-const team=await Team.findOne({leaderEmail:req.body.leaderEmail});
+    const userID = req.user._id;
+   // const leaders=await User.findById(userID);
+   // console.log(leaders);
+    const team=await Team.findOne({leaderEmail:req.body.leaderEmail});
+    console.log(team);
+
 if(team)
 {
     let mem=req.body.members;

@@ -13,18 +13,18 @@ module.exports = router;
 const express = require('express');
 const router = express.Router();
 const team = require('../controllers/team/team.js');
-//const auth = require('../middleware/authmiddleware');
+const auth = require('../middleware/authmiddleware');
 
 router.route('/getTeam')
-    .get( team.getTeam)
+    .get(auth, team.getTeam)
     
 router.route('/createTeam')
-    .post( team.makeTeam)
+    .post( auth, team.makeTeam)
 
 router.route('/deleteTeam')
-    .post(team.deleteTeam)  
+    .post(auth, team.deleteTeam)  
 router.route('/admin')
-    .get(team.removeMember)     
+    .get(auth, team.removeMember)     
 router.route('/gettoken')
-    .get(team.getTeamToken)
+    .get(auth, team.getTeamToken)
 module.exports = router;
