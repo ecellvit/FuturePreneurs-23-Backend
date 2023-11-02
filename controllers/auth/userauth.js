@@ -20,6 +20,8 @@ exports.googleAuth = catchAsync(async (req, res, next) => {
         );
     }
 
+    console.log(req.body,"+++hit");
+
     const token = req.body.token;
     const emailFromClient = req.body.email;
 
@@ -29,6 +31,7 @@ exports.googleAuth = catchAsync(async (req, res, next) => {
     });
 
     if (!ticket) {
+        console.log(ticket,"+++hit1");
         return next(
             new AppError(
                 "Please SignOut and SignIn Again",
@@ -40,6 +43,7 @@ exports.googleAuth = catchAsync(async (req, res, next) => {
 
     const { email } = ticket.getPayload();
     if (email !== emailFromClient) {
+        console.log(ticket,"+++hit2");
         return next(
             new AppError(
                 "Please SignOut and SignIn Again",
