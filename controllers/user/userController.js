@@ -5,68 +5,25 @@ const catchAsync = require('../../utils/catchAsync');
 const { teamValidation } = require('../../schemas');
 const AppError = require('../../utils/appError');
 const { errorCodes } = require('../../utils/constants');
-const User = require('../../models/user');
-const { generateTeamToken } = require("./utils");
+//const User = require('../../models/user');
+//const { generateTeamToken } = require("./utils");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.CLIENT_ID);
+const User = require('../../models/user');
 const { hasFilledDetailsBodyValidation } = require('./validationSchema');
 exports.hasFilledDetails = catchAsync(async (req, res, next) => {
-
-
-
-
-
-
-
-
-    const { error } = hasFilledDetailsBodyValidation(req.body);
-    if (error) {
-        return next(
-            new AppError(
-                error.details[0].message,
-                400,
-                errorCodes.INPUT_PARAMS_INVALID
-            )
-        );
-    }
-
-    const token = req.body.token;
-    const emailFromClient = req.body.email;
-
-    const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    if (!ticket) {
-        return next(
-            new AppError(
-                "Please SignOut and SignIn Again",
-                401,
-                errorCodes.INVALID_TOKEN
-            )
-        );
-    }
-
-    const { email } = ticket.getPayload();
-    if (email !== emailFromClient) {
-        return next(
-            new AppError(
-                "Please SignOut and SignIn Again",
-                401,
-                errorCodes.INVALID_TOKEN
-            )
-        );
-    }
-
-    const user = await User.findOne({ email: emailFromClient });
-
-    return res.status(201).json({
+    const emailUser= await User.findOne({email:req.body.email});
+    const FirsTnAMEuSER = await User.findOneAndUpdate(
+        { email: req.body.email },
+        { $set: { firstName: req.body.firstName, lastName: req.body.lastName, regNo:req.body.regNo,mobno:req.body.mobno } }
+      );
+      res.status(201).json({
         message: "Checking User Successfull",
-        teamId: user.teamId,
-        hasFilledDetails: user.hasFilledDetails,
+        //teamId: user.teamId,
+        //hasFilledDetails: user.hasFilledDetails,
     });
 });
+
 exports.leaveTeam = catchAsync(async (req, res, next) => {
     //validating teamid
     if (req.params.teamId.length !== objectIdLength) {
