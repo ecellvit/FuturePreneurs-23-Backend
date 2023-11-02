@@ -96,25 +96,25 @@ const jwt=require('jsonwebtoken');
 //const { generateTeamToken } = require("./utils");
 
 exports.getTeam = async (req, res, next) => {
-    // console.log("User ID: " + req.user._id);
+    console.log("User ID: " + req.user);
     //const user = await User.findById(req.user._id);
-    const user=await User.findOne({email:req.body.leaderEmail});
-    if (!user) {
-        return next(
-            res.status(401).json({ "message": "User Not Found" })
-        );
-    }
-    const email = user.email;
-    // console.log(user);
-    const team = await Team.findOne({ leaderEmail: email });
-    if (!team) {
-        return next(
-            res.status(404).json({ "message": "Team Not Found" })
-        );
-    }
-    res.json({
-        team
-    })
+    // const user=await User.findOne({email:req.body.leaderEmail});
+    // if (!user) {
+    //     return next(
+    //         res.status(401).json({ "message": "User Not Found" })
+    //     );
+    // }
+    // const email = user.email;
+    // // console.log(user);
+    // const team = await Team.findOne({ leaderEmail: email });
+    // if (!team) {
+    //     return next(
+    //         res.status(404).json({ "message": "Team Not Found" })
+    //     );
+    // }
+    // res.json({
+    //     team
+    // })
 }
 
 

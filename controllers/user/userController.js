@@ -10,6 +10,7 @@ const { generateTeamToken } = require("./utils");
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.CLIENT_ID);
 const { hasFilledDetailsBodyValidation } = require('./validationSchema');
+
 exports.hasFilledDetails = catchAsync(async (req, res, next) => {
     const { error } = hasFilledDetailsBodyValidation(req.body);
     if (error) {
@@ -59,6 +60,7 @@ exports.hasFilledDetails = catchAsync(async (req, res, next) => {
         hasFilledDetails: user.hasFilledDetails,
     });
 });
+
 exports.leaveTeam = catchAsync(async (req, res, next) => {
     //validating teamid
     if (req.params.teamId.length !== objectIdLength) {

@@ -28,6 +28,7 @@ const auth = async (req, res, next) => {
                 )
             );
         }
+        console.log("+++",tokenDetails)
         req.user = tokenDetails;
         next();
     } catch (err) {
