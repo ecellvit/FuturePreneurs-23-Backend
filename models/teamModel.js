@@ -20,7 +20,8 @@ const teamSchema = mongoose.Schema(
             type: String
         },
         teamID: {
-            type: mongoose.Schema.Types.ObjectId
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "TeamModel"
         },
         isQualified: {
             type: Boolean
@@ -29,7 +30,13 @@ const teamSchema = mongoose.Schema(
             type: String
         },
         members:{
-            type:[Number]
+            type:[String]
+        },
+        teamToken:{
+            type:Boolean
+        },
+        AccessToken:{
+            type:String
         }
     },
     { collection: "TeamModel" }

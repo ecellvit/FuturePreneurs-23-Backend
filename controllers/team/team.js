@@ -85,7 +85,7 @@ exports.makeTeam = catchAsync(async (req, res, next) => {
 */
 //const Team = require('../../models/teamModel');
 const Team = require('../../models/teamModel');
-const Token=require('../../models/usertoken')
+const Token=require('../../models/TeamToken')
 const { db } = require('../../models/user');
 const catchAsync = require('../../utils/catchAsync');
 const { teamValidation } = require('../../schemas');
@@ -149,15 +149,15 @@ exports.makeTeam = (async (req, res, next) => {
     //const user = await User.findOne({ mobno: req.body.mobno });
     //onsole.log(req.body.mobno);
     //console.log(user.mobno);
-    console.log(user);
+    //console.log(user);
     if (req.body.leaderEmail !== user.email) {
         return next(
             res.status(401).json({ "message": "Enter the same email you logged in with" })
         );
     }
     const teamByEmail = await Team.findOne({ leaderEmail: req.body.leaderEmail })
-    console.log(req.body.leaderEmail);
-    console.log(teamByEmail);
+    //console.log(req.body.leaderEmail);
+    //console.log(teamByEmail);
     if (teamByEmail) {
         return next(
             res.status(401).json({ "message": "Team with this Email ID already Exists" })
@@ -171,7 +171,8 @@ exports.makeTeam = (async (req, res, next) => {
         isQualified: true,
         hasSubmittedSectors: false,
         currentRound: "Not Started",
-        members:req.body.members
+        members:req.body.members,
+        
     }).save();
     /*
     const accessToken=jwt.sign({leaderEmail:user.email},"mySecretKey")
@@ -179,11 +180,11 @@ exports.makeTeam = (async (req, res, next) => {
         token:accessToken
     }).save();
     */
-    //await User.findOneAndUpdate({ email: req.body.leaderEmail }, { $set: { hasFilledDetails: true } })
-    console.log(req.body);
+    const t=await Team.findOneAndUpdate({ leaderEmail: req.body.leaderEmail }, { $set: { teamID: newTeam._id } })
+    console.log(t.teamID);
     res.status(201).json({
         message: "New Team Created Successfully",
-        teamId: newTeam._id,
+        teamID: newTeam._id,
        // accessToken
     });
 });
@@ -254,10 +255,85 @@ else{
         
 })
 
-exports.getTeamToken=(async(req,res,next)=>{
-    const team=await Team.findOne({teamName:req.body.teamName});
-    console.log(team._id);
-    console.log(Token._id);
-    const accesstok=await Token.findOne({_id: team._id})
-    console.log(accesstok)
-})
+
+
+exports.getTeamToken = async (req, res, next) => {
+    try {
+      const team = await Team.findOne({ teamName: req.body.teamName });
+        //console.log(team);
+      if (!team) {
+        return res.status(404).json({ error: 'Team not found' });
+      }
+  
+      if (!team.teamToken) {
+        const team = await Team.findOne({ teamName: req.body.teamName });
+        const accessToken = jwt.sign({ teamID: team.teamID }, process.env.JWT_SECRET);
+        
+        console.log(team.teamToken);
+        console.log(team.teamID);
+        const newToken = new Token({
+          teamID: team.teamID,
+          token: accessToken,
+        });
+  
+        await newToken.save();
+        await Team.findOneAndUpdate({ teamName: req.body.teamName }, { $set: { teamToken: true,AccessToken:accessToken} });
+  
+        res.status(200).json({
+          accessToken
+        });
+      } else {
+        try {
+          const token_init = team.accessToken;
+          console.log(token_init);
+          jwt.verify(token_init, process.env.JWT_SECRET);
+          
+          res.status(200).json({ message: 'Token is still valid' });
+        } catch (error) {
+            const team = await Team.findOne({ teamName: req.body.teamName });
+            const refreshToken = jwt.sign({ teamID: team.teamID }, process.env.JWT_SECRET);
+            await Team.findOneAndUpdate({ teamName: req.body.teamName }, { $set: { teamToken: true,AccessToken:refreshToken} });
+
+          //console.error(error);
+          res.status(500).json({ RefreshToken: refreshToken });
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+
+exports.jointeam=async(req,res,next)=>{
+    try {
+            const token = req.body.token;
+    
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log(decoded);
+         
+        const team = await Team.findOne({ _id: decoded.teamID });
+        console.log(team);
+        if (!team) { 
+          return res.status(404).json({ error: 'Team not found' });
+        }
+    
+        
+        if (team.isFull) {
+          return res.status(403).json({ error: 'Team is full' });
+        }
+    
+ 
+        
+        const find=await User.findOne({email:req.body.email});
+        console.log(find);
+        team.members.push(find.email);
+        await team.save();
+        
+        res.status(200).json({ message: 'You have joined the team!' });
+      } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Asks leader to generate new token' });
+      }
+}
