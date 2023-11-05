@@ -12,51 +12,33 @@ const client = new OAuth2Client(process.env.CLIENT_ID);
 const { hasFilledDetailsBodyValidation } = require('./validationSchema');
 
 exports.hasFilledDetails = catchAsync(async (req, res, next) => {
-    const { error } = hasFilledDetailsBodyValidation(req.body);
-    if (error) {
-        return next(
-            new AppError(
-                error.details[0].message,
-                400,
-                errorCodes.INPUT_PARAMS_INVALID
-            )
-        );
+    const user = await User.findById(req.user._id);
+
+    if(user.hasFilledDetails){
+        return res.status(201).json({
+            message: "User has filled details",
+            hasFilledDetails: user.hasFilledDetails,
+        });
     }
-
-    const token = req.body.token;
-    const emailFromClient = req.body.email;
-
-    const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-    });
-
-    if (!ticket) {
-        return next(
-            new AppError(
-                "Please SignOut and SignIn Again",
-                401,
-                errorCodes.INVALID_TOKEN
-            )
-        );
-    }
-
-    const { email } = ticket.getPayload();
-    if (email !== emailFromClient) {
-        return next(
-            new AppError(
-                "Please SignOut and SignIn Again",
-                401,
-                errorCodes.INVALID_TOKEN
-            )
-        );
-    }
-
-    const user = await User.findOne({ email: emailFromClient });
 
     return res.status(201).json({
-        message: "Checking User Successfull",
-        teamId: user.teamId,
+        message: "User has not filled details",
+        hasFilledDetails: user.hasFilledDetails,
+    });
+});
+
+exports.fillUserDetails = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.user._id);
+
+    if(user.hasFilledDetails){
+        return res.status(201).json({
+            message: "User has filled details",
+            hasFilledDetails: user.hasFilledDetails,
+        });
+    }
+
+    return res.status(201).json({
+        message: "User has not filled details",
         hasFilledDetails: user.hasFilledDetails,
     });
 });
