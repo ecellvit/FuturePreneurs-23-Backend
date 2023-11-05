@@ -67,7 +67,7 @@ app.use(bodyParser.urlencoded({
 }));
 
 app.use(express.json());
-/*
+
 app.use(function (req, res, next) {
     // Website you wish to allow to connect
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -89,17 +89,6 @@ app.use(function (req, res, next) {
     next();
 });
 
-morgan.token("req-headers", function (req, res) {
-    return JSON.stringify(req.headers);
-});
-
-process.env.NODE_ENV != "production" &&
-    app.use(morgan(":method :url :status :req-headers"));
-app.use(express.urlencoded({ extended: true }));
-
-app.use('/api/team', teamRoute);
-
-*/
 app.use('/api/team',teamRoute);
 app.use('/api/auth', authRoute);
 
