@@ -1,245 +1,219 @@
-/*
 const Team = require('../../models/teamModel');
+const Token = require('../../models/usertoken')
 const { db } = require('../../models/user');
-const catchAsync = require('../../utils/catchAsync');
-const { teamValidation } = require('../../schemas');
-const AppError = require('../../utils/appError');
-const { errorCodes } = require('../../utils/constants');
 const User = require('../../models/user');
-const { generateTeamToken } = require("./utils");
+const jwt = require('jsonwebtoken');
+const {
+    teamRole,
+    objectIdLength
+  } = require("../../utils/constants");
 
-exports.getTeam = async (req, res, next) => {
-    // console.log("User ID: " + req.user._id);
+exports.getTeamDetails = async (req, res, next) => {
+    console.log("User ID: " + req.user);
     const user = await User.findById(req.user._id);
+    // const user=await User.findOne({email:req.body.leaderEmail});
     if (!user) {
-        return next(
-            res.status(401).json({ "message": "User Not Found" })
-        );
+        // return next(
+        //     res.status(401).json({ "message": "User Not Found" })
+        // );
+        res.status(401).json({
+            message: "User Not Found"
+        })
     }
-    const email = user.email;
+    const teamId = user.teamId;
     // console.log(user);
-    const team = await Team.findOne({ leaderEmail: email });
+    const team = await Team.findById(teamId).populate("members");
     if (!team) {
         return next(
             res.status(404).json({ "message": "Team Not Found" })
         );
     }
     res.json({
-        team
+        message: "Team Details sent successfully",
+        teamDetails: team
     })
-}
-
-exports.makeTeam = catchAsync(async (req, res, next) => {
-    const { error } = teamValidation(req.body);
-    if (error) {
-        return next(
-            res.status(400).json({ "message": error.message })
-        )
-    }
-
-    //check whether teamname already taken
-    const team_by_name = await Team.findOne({ teamName: req.body.teamName });
-    if (team_by_name) {
-        return next(
-            res.status(412).json({ "message": "Team Name Already Exists" })
-        );
-    }
-
-    // const team_by_number = await Team.findOne({ teamNumber: req.body.teamNumber });
-    // if (team_by_number) {
-    //     return next(
-    //         res.status(412).json({ "message": "Team Number Already Exists" })
-    //     );
-    // };
-    const userID = req.user._id;
-    const user = await User.findById(userID);
-    if (req.body.leaderEmail !== user.email) {
-        return next(
-            res.status(401).json({ "message": "Enter the same email you logged in with" })
-        );
-    }
-    const teamByEmail = await Team.findOne({ leaderEmail: req.body.leaderEmail })
-    console.log(req.body.leaderEmail);
-    console.log(teamByEmail);
-    if (teamByEmail) {
-        return next(
-            res.status(401).json({ "message": "Team with this Email ID already Exists" })
-        );
-    }
-    const newTeam = await new Team({
-        teamName: req.body.teamName,
-        leaderName: req.body.leaderName,
-        leaderEmail: req.body.leaderEmail,
-        vps: 15000,
-        isQualified: true,
-        hasSubmittedSectors: false,
-        currentRound: "Not Started"
-    }).save();
-    await User.findOneAndUpdate({ email: req.body.leaderEmail }, { $set: { hasFilledDetails: true } })
-    console.log(req.body);
-    res.status(201).json({
-        message: "New Team Created Successfully",
-        teamId: newTeam._id,
-    });
-});
-*/
-//const Team = require('../../models/teamModel');
-const Team = require('../../models/teamModel');
-const Token=require('../../models/usertoken')
-const { db } = require('../../models/user');
-//const catchAsync = require('../../utils/catchAsync');
-//const { teamValidation } = require('../../schemas');
-//const AppError = require('../../utils/appError');
-//const { errorCodes } = require('../../utils/constants');
-const User = require('../../models/user');
-const jwt=require('jsonwebtoken');
-//const { generateTeamToken } = require("./utils");
-
-exports.getTeam = async (req, res, next) => {
-    console.log("User ID: " + req.user);
-    //const user = await User.findById(req.user._id);
-    // const user=await User.findOne({email:req.body.leaderEmail});
-    // if (!user) {
-    //     return next(
-    //         res.status(401).json({ "message": "User Not Found" })
-    //     );
-    // }
-    // const email = user.email;
-    // // console.log(user);
-    // const team = await Team.findOne({ leaderEmail: email });
-    // if (!team) {
-    //     return next(
-    //         res.status(404).json({ "message": "Team Not Found" })
-    //     );
-    // }
-    // res.json({
-    //     team
-    // })
 }
 
 
 exports.makeTeam = (async (req, res, next) => {
-    /*
-    const { error } = teamValidation(req.body);
-    if (error) {
-        return next(
-            res.status(400).json({ "message": error.message })
-        )
-    }
-    */
+
+    console.log(req.user._id);
+    const user = await User.findById({ _id: req.user._id });
 
     //check whether teamname already taken
-    const team_by_name = await Team.findOne({ teamName: req.body.teamName });
-    if (team_by_name) {
-        return next(
-            res.status(412).json({ "message": "Team Name Already Exists" })
-        );
+    const team = await Team.findOne({ teamName: req.body.teamName });
+    if (team) {
+        // return next(
+        //     new AppError("TeamName Already Exists", 412, errorCodes.TEAM_NAME_EXISTS)
+        // );
+        res.status(401).json({
+            message: "TeamName Already Exists"
+        })
     }
 
-    // const team_by_number = await Team.findOne({ teamNumber: req.body.teamNumber });
-    // if (team_by_number) {
-    //     return next(
-    //         res.status(412).json({ "message": "Team Number Already Exists" })
-    //     );
-    // };
-    //const userID = req.user._id;
-    //const userID="6521c01ab187c5b6542be48c";
-    //const user = await User.findById(userID);
-    const user = await User.findOne({ mobno: req.body.mobno });
-    console.log(req.body.mobno);
-    console.log(user.mobno);
-    console.log(user);
-    if (req.body.leaderEmail !== user.email) {
-        return next(
-            res.status(401).json({ "message": "Enter the same email you logged in with" })
-        );
+    //if user is already in a team
+    if (user.teamId || user.teamRole) {
+        // return next(
+        //     new AppError(
+        //         "User Already Part of a Team",
+        //         412,
+        //         errorCodes.USER_ALREADY_IN_TEAM
+        //     )
+        // );
+        res.status(401).json({
+            message: "User Already Part of a Team"
+        })
     }
-    const teamByEmail = await Team.findOne({ leaderEmail: req.body.leaderEmail })
-    console.log(req.body.leaderEmail);
-    console.log(teamByEmail);
-    if (teamByEmail) {
-        return next(
-            res.status(401).json({ "message": "Team with this Email ID already Exists" })
-        );
-    }
+
+
     const newTeam = await new Team({
         teamName: req.body.teamName,
-        leaderName: req.body.leaderName,
-        leaderEmail: req.body.leaderEmail,
-        //vps: 15000,
-        isQualified: true,
-        hasSubmittedSectors: false,
-        currentRound: "Not Started",
-        members:req.body.members
+        teamLeaderId: req.user._id,
+        members: [req.user._id],
     }).save();
-    const accessToken=jwt.sign({leaderEmail:user.email},"mySecretKey")
-    const newToken=await new Token({
-        token:accessToken
-    }).save();
-    await User.findOneAndUpdate({ email: req.body.leaderEmail }, { $set: { hasFilledDetails: true } })
-    console.log(req.body);
+
+    await User.updateMany(
+        { _id: req.user._id },
+        { $set: { teamId: newTeam._id, teamRole: teamRole.LEADER } }
+    );
+
     res.status(201).json({
         message: "New Team Created Successfully",
-        teamId: newTeam._id,
-        accessToken
+        // teamId: newTeam._id,
     });
+
 });
 
 
-exports.deleteTeam=(async(req,res)=>{
-    const leader=await Team.findOne({teamName:req.body.teamName});
-    console.log(req.body.teamName);
-    console.log(leader);
-    if(leader.members.length===0)
-    {
-        const deleteTeam1 = await Team.findOneAndDelete({ teamName: req.body.teamName });
-
-        console.log(deleteTeam1);
-        res.status(201).json({
-            message:"Team has been deleted successfully"
-        })
+exports.deleteTeam = (async (req, res) => {
+    if (req.params.teamId.length !== objectIdLength) {
+        return next(
+            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+        );
     }
-    else
-    {
+
+    //validating teamid
+    const team = await Team.findById({ _id: req.params.teamId });
+
+    if (!team) {
         res.status(401).json({
-            message:"your team is not empty"
+            message: "Invalid TeamId"
+        })
+
+    }
+
+    //check whether user belongs to the given team and role
+    if (team.teamLeaderId.toString() !== req.user._id) {
+        res.status(401).json({
+            message: "User doesn't belong to the Team or User isn't a Leader"
         })
     }
-})
+
+    //check team size
+    if (team.members.length !== 1) {
+        res.status(401).json({
+            message: "Teamsize more than 1. Remove TeamMembers and Delete the Team"
+        })
+    }
 
 
-exports.removeMember=(async(req,res,next)=>{
-const team=await Team.findOne({leaderEmail:req.body.leaderEmail});
-if(team)
-{
-    let mem=req.body.members;
-    const id1=await Team.findOne({members:mem});
-    if(id1)
-    {
-    team.members = team.members.filter(item => item !== mem);
-    console.log(team.members);
-    await Team.findOneAndUpdate({ leaderEmail: req.body.leaderEmail }, { $set: { members: team.members } })
+    await Team.findOneAndDelete({
+        _id: req.params.teamId,
+    });
+
+    await User.findByIdAndUpdate(
+        { _id: req.user._id },
+        { teamId: null, teamRole: null }
+    );
+
     res.status(200).json({
-        message:"member removed successfully"
-    })
-    }else{
-        res.status(401).json({
-            message:"the members is not in your team"
-        })
-    }
-}
-else{
-    res.status(400).json({
-        message:"only leader can remove the members"
-    })
-}
-        
+        message: "Team Deleted Successfully",
+    });
 })
 
-exports.getTeamToken=(async(req,res,next)=>{
-    const team=await Team.findOne({teamName:req.body.teamName});
+
+exports.removeMember = (async (req, res, next) => {
+    // const { error } = removeMemberBodyValidation(req.body);
+    // if (error) {
+    //     return next(
+    //         new AppError(
+    //             error.details[0].message,
+    //             400,
+    //             errorCodes.INPUT_PARAMS_INVALID
+    //         )
+    //     );
+    // }
+    //checking for invalid team id
+    if (req.params.teamId.length !== objectIdLength) {
+        return next(
+            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+        );
+    }
+
+    //validating teamid
+    const team = await Team.findById({ _id: req.params.teamId });
+
+    if (!team) {
+        return next(
+            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+        );
+    }
+
+    //checking whether user to remove id is valid
+    const userToRemove = await User.findById({ _id: req.body.userId });
+    if (!userToRemove) {
+        return next(
+            new AppError("Invalid UserId to Remove", 412, errorCodes.INVALID_USERID)
+        );
+    }
+
+    //check whether user belongs to the given team and role
+    if (team.teamLeaderId.toString() !== req.user._id) {
+        return next(
+            new AppError(
+                "User doesn't belong to the team or user isn't a leader",
+                412,
+                errorCodes.INVALID_USERID_FOR_TEAMID_OR_USER_NOT_LEADER
+            )
+        );
+    }
+
+    //checking whether user to remove belomgs to the team id
+    if (
+        userToRemove.teamId == null ||
+        userToRemove.teamId.toString() !== req.params.teamId
+    ) {
+        return next(
+            new AppError(
+                "User to remove and TeamId didnt Match",
+                412,
+                errorCodes.INVALID_USERID_FOR_TEAMID
+            )
+        );
+    }
+
+    //updating user teamid and teamrole
+    await User.findOneAndUpdate(
+        { _id: req.body.userId },
+        { teamId: null, teamRole: null }
+    );
+
+    //updating team
+    await Team.findOneAndUpdate(
+        { _id: req.params.teamId },
+        { $pull: { members: req.body.userId } }
+    );
+
+
+    res.status(201).json({
+        message: "User Removed Successfully",
+    });
+})
+
+exports.getTeamToken = (async (req, res, next) => {
+    const team = await Team.findOne({ teamName: req.body.teamName });
     console.log(team._id);
     console.log(Token._id);
-    const accesstok=await Token.findOne({_id: team._id})
+    const accesstok = await Token.findOne({ _id: team._id })
     console.log(accesstok)
 })
