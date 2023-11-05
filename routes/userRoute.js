@@ -5,6 +5,11 @@ const auth = require('../middleware/authmiddleware');
 const userController = require('../controllers/user/userController');
 
 router.route('/hasFilledDetails')
-    .patch(auth, userController.hasFilledDetails)
+    .get(auth, userController.hasFilledDetails)
+
+router.route('/fillUserDetails')
+    .patch(auth, userController.fillUserDetails)
+
+
 router.route('/leaveTeam/:teamId')
     .post(auth, userController.leaveTeam)
