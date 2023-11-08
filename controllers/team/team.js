@@ -1,8 +1,14 @@
 const Team = require('../../models/teamModel');
-const Token = require('../../models/usertoken')
+const Token=require('../../models/TeamToken')
 const { db } = require('../../models/user');
+const catchAsync = require('../../utils/catchAsync');
+const { teamValidation } = require('../../schemas');
+const AppError = require('../../utils/appError');
+
 const User = require('../../models/user');
-const jwt = require('jsonwebtoken');
+const jwt=require('jsonwebtoken');
+const { generateTeamToken } = require("./utils");
+const auth = require('../../middleware/authmiddleware');
 const {
     teamRole,
     objectIdLength
@@ -212,25 +218,31 @@ exports.removeMember = (async (req, res, next) => {
 
 exports.getTeamToken = async (req, res, next) => {
     try {
-      const team = await Team.findOne({ teamName: req.body.teamName });
+        const teamId1 = req.params.teamId;
+        const team = await Team.findOne({ _id: teamId1 });
+        
+      console.log(team);
+      console.log(team._id);
         //console.log(team);
+        //console.log(teamId1);
       if (!team) {
         return res.status(404).json({ error: 'Team not found' });
       }
   
       if (!team.teamToken) {
-        const team = await Team.findOne({ teamName: req.body.teamName });
-        const accessToken = jwt.sign({ teamID: team.teamID }, process.env.JWT_SECRET);
+        const teamId1 = req.params.teamId;
+        const team = await Team.findOne({ _id: teamId1 });
+        const accessToken = jwt.sign({ teamID: team._id}, process.env.JWT_SECRET);
         
         console.log(team.teamToken);
-        console.log(team.teamID);
+        //console.log(team.teamID);
         const newToken = new Token({
-          teamID: team.teamID,
+          teamID: team._id,
           token: accessToken,
-        });
+        }).save();
   
-        await newToken.save();
-        await Team.findOneAndUpdate({ teamName: req.body.teamName }, { $set: { teamToken: true,AccessToken:accessToken} });
+        //await newToken.save();
+        await Team.findOneAndUpdate({ _id: req.params.teamId }, { $set: { teamToken: true,AccessToken:accessToken} });
   
         res.status(200).json({
           accessToken
@@ -243,8 +255,9 @@ exports.getTeamToken = async (req, res, next) => {
           
           res.status(200).json({ message: 'Token is still valid' });
         } catch (error) {
-            const team = await Team.findOne({ teamName: req.body.teamName });
-            const refreshToken = jwt.sign({ teamID: team.teamID }, process.env.JWT_SECRET);
+            const teamId1 = req.params.teamId;
+            const team = await Team.findOne({ _id: teamId1 });
+            const refreshToken = jwt.sign({ teamID: team._id }, process.env.JWT_SECRET);
             await Team.findOneAndUpdate({ teamName: req.body.teamName }, { $set: { teamToken: true,AccessToken:refreshToken} });
 
           //console.error(error);
@@ -279,9 +292,12 @@ exports.jointeam=async(req,res,next)=>{
     
  
         
-        const find=await User.findOne({email:req.body.email});
+        const userID = req.user._id;
+        const find=await User.findById(userID);
+        await User.findOneAndUpdate({ _id: userID }, { $set: { teamId: decoded.teamID,role:"member"} });
         console.log(find);
-        team.members.push(find.email);
+        team.members.push(find._id);
+
         await team.save();
         
         res.status(200).json({ message: 'You have joined the team!' });
