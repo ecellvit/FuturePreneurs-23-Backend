@@ -20,7 +20,8 @@ const teamSchema = mongoose.Schema(
             type: String
         },
         teamID: {
-            type: mongoose.Schema.Types.ObjectId
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "TeamModel"
         },
         isQualified: {
             type: Boolean
@@ -28,14 +29,18 @@ const teamSchema = mongoose.Schema(
         currentRound: {
             type: String
         },
-        members: [
-            {
-              type: mongoose.Schema.Types.ObjectId,
-              ref: "Users",
-            },
-        ],
+        members:{
+            type:[String]
+        },
+        teamToken:{
+            type:Boolean
+        },
+        AccessToken:{
+            type:String
+        }
     },
     { collection: "TeamModel" }
 );
 
 module.exports = mongoose.model("TeamModel", teamSchema);
+
