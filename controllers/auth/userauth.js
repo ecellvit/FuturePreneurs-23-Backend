@@ -20,16 +20,15 @@ exports.googleAuth = catchAsync(async (req, res, next) => {
         );
     }
 
-    console.log(req.body,"+++hit");
-
+    
     const token = req.body.token;
     const emailFromClient = req.body.email;
-
+    
     const ticket = await client.verifyIdToken({
         idToken: token,
         audience: process.env.GOOGLE_CLIENT_ID,
     });
-
+    
     if (!ticket) {
         console.log(ticket,"+++hit1");
         return next(
