@@ -22,7 +22,7 @@ exports.getTeamDetails = async (req, res, next) => {
         // return next(
         //     res.status(401).json({ "message": "User Not Found" })
         // );
-        res.status(401).json({
+        return res.status(401).json({
             message: "User Not Found"
         })
     }
@@ -34,7 +34,7 @@ exports.getTeamDetails = async (req, res, next) => {
             res.status(404).json({ "message": "Team Not Found" })
         );
     }
-    res.json({
+    return res.json({
         message: "Team Details sent successfully",
         teamDetails: team
     })
@@ -52,7 +52,7 @@ exports.makeTeam = (async (req, res, next) => {
         // return next(
         //     new AppError("TeamName Already Exists", 412, errorCodes.TEAM_NAME_EXISTS)
         // );
-        res.status(401).json({
+        return res.status(401).json({
             message: "TeamName Already Exists"
         })
     }
@@ -66,7 +66,7 @@ exports.makeTeam = (async (req, res, next) => {
         //         errorCodes.USER_ALREADY_IN_TEAM
         //     )
         // );
-        res.status(401).json({
+        return res.status(401).json({
             message: "User Already Part of a Team"
         })
     }
@@ -83,7 +83,7 @@ exports.makeTeam = (async (req, res, next) => {
         { $set: { teamId: newTeam._id, teamRole: teamRole.LEADER } }
     );
 
-    res.status(201).json({
+    return res.status(201).json({
         message: "New Team Created Successfully",
         // teamId: newTeam._id,
     });
@@ -102,7 +102,7 @@ exports.deleteTeam = (async (req, res) => {
     const team = await Team.findById({ _id: req.params.teamId });
 
     if (!team) {
-        res.status(401).json({
+        return res.status(401).json({
             message: "Invalid TeamId"
         })
 
@@ -110,14 +110,14 @@ exports.deleteTeam = (async (req, res) => {
 
     //check whether user belongs to the given team and role
     if (team.teamLeaderId.toString() !== req.user._id) {
-        res.status(401).json({
+        return res.status(401).json({
             message: "User doesn't belong to the Team or User isn't a Leader"
         })
     }
 
     //check team size
     if (team.members.length !== 1) {
-        res.status(401).json({
+        return res.status(401).json({
             message: "Teamsize more than 1. Remove TeamMembers and Delete the Team"
         })
     }
