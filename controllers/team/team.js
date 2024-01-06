@@ -306,3 +306,35 @@ exports.jointeam=async(req,res,next)=>{
         res.status(500).json({ error: 'Asks leader to generate new token' });
       }
 }
+
+exports.leaveteam=async(req,res,next)=>{
+    try{
+        const userId=req.user._id;
+        const user = await User.findById(userId);
+
+        // Check if the user is already part of a team
+        if (!user.teamId) {
+            return res.status(401).json({
+                message: "User is not part of any team",
+            });
+        }
+        const team = await Team.findById(user.teamId);
+        if (!team) {
+            return res.status(404).json({
+                message: "Team not found",
+            });
+        }
+
+        // Remove the user from the team's members
+        team.members.pull(userId);
+        await team.save();
+        await User.findByIdAndUpdate(userId, { $set: { teamId: null, teamRole: null } });
+
+        res.status(200).json({
+            message: "User has left the team successfully",
+        });
+    }catch(error){
+        console.log(error);
+        res.status(500).json({error:'Something went wrong'})
+    }
+}
