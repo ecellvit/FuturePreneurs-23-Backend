@@ -16,9 +16,12 @@ router.route('/remove/:teamId')
     .get(auth, team.removeMember)     
 
 
-    router.route('/gettoken/:teamId')
+router.route('/gettoken/:teamId')
     .get( auth,team.getTeamToken)
     
 router.route('/jointeam')
-    .post( auth,team.jointeam)       
+    .post( auth,team.jointeam)   
+    
+router.route('/leaveTeam')
+    .post(auth,team.leaveteam)
 module.exports = router;
