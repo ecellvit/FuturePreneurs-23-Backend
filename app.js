@@ -1,9 +1,10 @@
 const express = require('express');
 const path = require('path');
 const teamRoute = require('./routes/team');
+const authRoute = require('./routes/authRoutes');
+const userRoute = require('./routes/userRoute');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
-const authRoute = require('./routes/authRoutes');
 const app = express();
 const cors = require("cors");
 
@@ -42,6 +43,7 @@ app.use(function (req, res, next) {
 
 app.use('/api/team',teamRoute);
 app.use('/api/auth', authRoute);
+app.use('/api/user', userRoute);
 
 
 
