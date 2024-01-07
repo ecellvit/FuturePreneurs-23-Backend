@@ -13,3 +13,5 @@ router.route('/fillUserDetails')
 
 router.route('/leaveTeam/:teamId')
     .post(auth, userController.leaveTeam)
+
+module.exports = router;
