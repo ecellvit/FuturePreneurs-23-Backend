@@ -8,8 +8,10 @@ router.route('/hasFilledDetails')
     .get(auth, userController.hasFilledDetails)
 
 router.route('/fillUserDetails')
-    .patch(auth, userController.fillUserDetails)
+    .post(auth, userController.fillUserDetails)
 
 
 router.route('/leaveTeam/:teamId')
     .post(auth, userController.leaveTeam)
+
+module.exports = router;
