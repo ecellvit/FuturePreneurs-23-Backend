@@ -18,11 +18,11 @@ const teamRole = {
 //   STARTED: 1,
 // };
 
-// const errorCodes = {
+const errorCodes = {
 //   UNKNOWN_ERROR: 0,
 //   EXCEPTION: 1,
 //   INPUT_PARAMS_INVALID: 2,
-//   INVALID_TOKEN: 3,
+  INVALID_TOKEN: 3,
 //   USER_NAME_EXIXTS: 4,
 //   INVALID_USERNAME_OR_PASSWORD: 5,
 //   INVALID_URL: 6,
@@ -59,7 +59,7 @@ const teamRole = {
 //   ROUND_ONE_NOT_COMPLETED: 37, // round one not completed
 //   ROUND_THREE_NOT_STARTED: 38, //round three not started
 //   ROUND_TWO_NOT_STARTED: 39,
-// };
+};
 
 // const questionTypes = {
 //   SINGLE_CORRECT: 0,
