@@ -26,7 +26,7 @@ exports.hasFilledDetails = catchAsync(async (req, res, next) => {
         hasFilledDetails: user.hasFilledDetails,
     });
 });
-
+// to do: update the hasfilleddetials to be true
 exports.fillUserDetails = catchAsync(async (req, res, next) => {
     try{
     const user = await User.findById(req.user._id);
@@ -35,6 +35,11 @@ exports.fillUserDetails = catchAsync(async (req, res, next) => {
     user.regNo=req.body.regNo;
     user.mob=req.body.mob;
     await user.save();
+    await User.findByIdAndUpdate(user._id,{
+        $set:{
+           hasFilledDetails:"true"
+        }
+    })
     res.status(200).json({
         message:"user details have been saved successfully"
     })
