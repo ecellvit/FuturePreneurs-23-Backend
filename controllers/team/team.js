@@ -259,7 +259,7 @@ exports.getTeamToken = async (req, res, next) => {
             const team = await Team.findOne({ _id: teamId1 });
             const refreshToken = jwt.sign({ teamID: team._id }, process.env.JWT_SECRET);
             await Team.findOneAndUpdate({ teamName: req.body.teamName }, { $set: { teamToken: true,AccessToken:refreshToken} });
-
+ 
           //console.error(error);
           res.status(500).json({ RefreshToken: refreshToken });
         }
@@ -269,7 +269,7 @@ exports.getTeamToken = async (req, res, next) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
-
+//sdfcsd
 
 exports.jointeam=async(req,res,next)=>{
     try {
@@ -278,6 +278,15 @@ exports.jointeam=async(req,res,next)=>{
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         console.log(decoded);
+        const currentTime=new Date();
+        const tokenCreationTime=new Date(docoded.iat*1000);
+
+        const timeDifference=currentTime-tokenCreationTime;
+        if(timeDifference>300){
+            res.status(404).json({
+                message:"Ask leader to generate new Token"
+            })
+        }
          
         const team = await Team.findOne({ _id: decoded.teamID });
         console.log(team);
