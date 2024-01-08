@@ -40,6 +40,8 @@ app.use(function (req, res, next) {
     next();
 });
 
+app.use(cors())
+
 
 app.use('/api/team',teamRoute);
 app.use('/api/auth', authRoute);
