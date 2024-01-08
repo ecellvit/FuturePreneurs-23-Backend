@@ -269,7 +269,7 @@ exports.getTeamToken = async (req, res, next) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   };
-
+//sdfc
 
 exports.jointeam=async(req,res,next)=>{
     try {
