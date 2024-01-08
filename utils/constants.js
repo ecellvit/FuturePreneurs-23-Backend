@@ -106,7 +106,7 @@ module.exports = {
   teamRole,
 //   requestStatusTypes,
 //   approvalStatusTypes,
-//   errorCodes,
+  errorCodes,
   objectIdLength,
 //   noOfQuestionsToAnswer,
 //   questionTypes,
