@@ -28,19 +28,24 @@ exports.hasFilledDetails = catchAsync(async (req, res, next) => {
 });
 
 exports.fillUserDetails = catchAsync(async (req, res, next) => {
+    try{
     const user = await User.findById(req.user._id);
-
-    if(user.hasFilledDetails){
-        return res.status(201).json({
-            message: "User has filled details",
-            hasFilledDetails: user.hasFilledDetails,
-        });
-    }
-
-    return res.status(201).json({
-        message: "User has not filled details",
-        hasFilledDetails: user.hasFilledDetails,
-    });
+    user.firstName=req.body.firstName;
+    user.lastName=req.body.lastName;
+    user.regNo=req.body.regNo;
+    user.mob=req.body.mob;
+    await user.save();
+    res.status(200).json({
+        message:"user details have been saved successfully"
+    })
+}catch(error){
+    console.error(error);
+    res.status(404).json({
+        message:"something went wrong"
+    })
+}
+    
+    
 });
 
 exports.leaveTeam = catchAsync(async (req, res, next) => {
