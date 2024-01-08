@@ -9,6 +9,8 @@ const app = express();
 const cors = require("cors");
 
 require("dotenv").config({ path: path.resolve(__dirname, "./.env") });
+
+app.use(cors())
 app.use(bodyParser.urlencoded({
     extended: true
 }));
@@ -39,8 +41,6 @@ app.use(function (req, res, next) {
     // Pass to next layer of middleware
     next();
 });
-
-app.use(cors())
 
 
 app.use('/api/team',teamRoute);
