@@ -75,7 +75,7 @@ const userSchema = new Schema(
             type: Date,
             default: Date.now(),
         },
-        role:{
+        teamRole:{
             type:String
         }
         
