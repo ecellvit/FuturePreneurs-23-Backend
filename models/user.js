@@ -76,7 +76,8 @@ const userSchema = new Schema(
             default: Date.now(),
         },
         teamRole:{
-            type:String
+            type:String,
+            default: null
         }
         
     },
