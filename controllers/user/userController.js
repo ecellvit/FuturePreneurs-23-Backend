@@ -35,7 +35,7 @@ exports.fillUserDetails = catchAsync(async (req, res, next) => {
     user.regNo=req.body.regNo;
     user.mob=req.body.mob;
     await user.save();
-    res.status(200).json({
+    return res.status(200).json({
         message:"user details have been saved successfully"
     })
 }catch(error){
