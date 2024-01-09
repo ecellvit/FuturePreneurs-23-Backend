@@ -25,11 +25,14 @@ const teamSchema = mongoose.Schema(
         currentRound: {
             type: String
         },
-        members:{
-            type:[String]
-        },
-        teamCode:{
-            type:String
+        members: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Users",
+            },
+        ],
+        teamCode: {
+            type: String
         }
     },
     { collection: "TeamModel" }
