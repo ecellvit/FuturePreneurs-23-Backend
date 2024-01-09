@@ -16,7 +16,7 @@ router.route('/remove/:teamId')
     .get(auth, team.removeMember)     
 
 
-router.route('/gettoken/:teamId')
+router.route('/getTeamCode')
     .get( auth,team.getTeamToken)
     
 router.route('/jointeam')

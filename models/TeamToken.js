@@ -4,9 +4,9 @@ const Schema = mongoose.Schema;
 
 const teamTokenSchema = new Schema(
   {
-    teamID: {
-      type: Schema.Types.ObjectId,
-      required: true,
+    teamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Teams",
     },
     token: {
       type: String,
@@ -15,7 +15,6 @@ const teamTokenSchema = new Schema(
     createdAt: {
       type: Date,
       default: Date.now,
-      expires: 6, // 60 seconds (1 minute)
     }
     
   },

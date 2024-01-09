@@ -1,19 +1,21 @@
 const Team = require('../../models/teamModel');
-const Token=require('../../models/TeamToken')
+const Token = require('../../models/TeamToken')
 const { db } = require('../../models/user');
 const catchAsync = require('../../utils/catchAsync');
 const { teamValidation } = require('../../schemas');
 const AppError = require('../../utils/appError');
 
 const User = require('../../models/user');
-const jwt=require('jsonwebtoken');
+const jwt = require('jsonwebtoken');
 const { generateTeamToken } = require("./utils");
 const auth = require('../../middleware/authmiddleware');
 const {
     teamRole,
     objectIdLength
-  } = require("../../utils/constants");
+} = require("../../utils/constants");
 
+//   const { nanoid } = require('nanoid');
+const { customAlphabet } = require('nanoid');
 exports.getTeamDetails = async (req, res, next) => {
     console.log("User ID: " + req.user);
     const user = await User.findById(req.user._id);
@@ -218,107 +220,104 @@ exports.removeMember = (async (req, res, next) => {
 
 exports.getTeamToken = async (req, res, next) => {
     try {
-        const teamId1 = req.params.teamId;
-        const team = await Team.findOne({ _id: teamId1 });
-        
-      console.log(team);
-      console.log(team._id);
-        //console.log(team);
-        //console.log(teamId1);
-      if (!team) {
-        return res.status(404).json({ error: 'Team not found' });
-      }
-  
-      if (!team.teamToken) {
-        const teamId1 = req.params.teamId;
-        const team = await Team.findOne({ _id: teamId1 });
-        const accessToken = jwt.sign({ teamID: team._id}, process.env.JWT_SECRET);
-        
-        console.log(team.teamToken);
-        //console.log(team.teamID);
-        const newToken = new Token({
-          teamID: team._id,
-          token: accessToken,
-        }).save();
-  
-        //await newToken.save();
-        await Team.findOneAndUpdate({ _id: req.params.teamId }, { $set: { teamToken: true,AccessToken:accessToken} });
-  
-        res.status(200).json({
-          accessToken
-        });
-      } else {
-        try {
-          const token_init = team.accessToken;
-          console.log(token_init);
-          jwt.verify(token_init, process.env.JWT_SECRET);
-          
-          res.status(200).json({ message: 'Token is still valid' });
-        } catch (error) {
-            const teamId1 = req.params.teamId;
-            const team = await Team.findOne({ _id: teamId1 });
-            const refreshToken = jwt.sign({ teamID: team._id }, process.env.JWT_SECRET);
-            await Team.findOneAndUpdate({ teamName: req.body.teamName }, { $set: { teamToken: true,AccessToken:refreshToken} });
- 
-          //console.error(error);
-          res.status(500).json({ RefreshToken: refreshToken });
+        const leaderId = req.user._id;
+        const team = await Team.findOne({ teamLeaderId: leaderId });
+
+        if (!team) {
+            return res.status(404).json({ error: 'Team not found' });
         }
-      }
+
+        if (!team.teamCode) {
+            const teamCode = customAlphabet("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 10)();
+            // const teamCode = nanoid(10)
+            const newToken = await new Token({
+                teamId: team._id,
+                token: teamCode,
+            }).save();
+
+            await Team.findOneAndUpdate({ _id: team._id }, { $set: { teamCode: teamCode } });
+
+            return res.status(200).json({
+                "teamCode": teamCode
+            });
+
+        } 
+        else {
+            const token = await Token.findOne({ teamId: team._id });
+
+            if (!token) {
+                return res.status(404).json({ error: 'Token not found' });
+            }
+
+            const currentTime = new Date();
+            const tokenCreationTime = token.createdAt;
+
+            const timeDifference = (currentTime - tokenCreationTime) / (1000 * 60); // Difference in minutes
+
+            if (timeDifference > 2) {
+                // Token expired, generate a new token
+                const newTeamCode = customAlphabet("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 10)();
+                await Token.findOneAndUpdate({ teamId: team._id }, { $set: { token: newTeamCode } });
+                await Team.findOneAndUpdate({ _id: team._id }, { $set: { teamCode: newTeamCode } });
+
+                return res.status(200).json({ "teamCode": newTeamCode });
+            } else {
+                return res.status(200).json({ "teamCode": token.token });
+            }
+        }
+   
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal server error' });
+        console.error(error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
-  };
-//sdfcsd
+};
 
-exports.jointeam=async(req,res,next)=>{
+exports.jointeam = async (req, res, next) => {
     try {
-            const token = req.body.token;
-    
-        
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        console.log(decoded);
-        const currentTime=new Date();
-        const tokenCreationTime=new Date(docoded.iat*1000);
-
-        const timeDifference=currentTime-tokenCreationTime;
-        if(timeDifference>300){
-            res.status(404).json({
-                message:"Ask leader to generate new Token"
-            })
-        }
-         
-        const team = await Team.findOne({ _id: decoded.teamID });
-        console.log(team);
-        if (!team) { 
-          return res.status(404).json({ error: 'Team not found' });
-        }
-    
-        
-        if (team.isFull) {
-          return res.status(403).json({ error: 'Team is full' });
-        }
-    
- 
-        
         const userID = req.user._id;
-        const find=await User.findById(userID);
-        await User.findOneAndUpdate({ _id: userID }, { $set: { teamId: decoded.teamID,role:"member"} });
-        console.log(find);
-        team.members.push(find._id);
+        const code = req.body.teamCode;
+        const team = await Team.findOne({ teamCode: code });
+        //check if user is not a part of any team
+        if (!team) {
+            return res.status(404).json({ error: 'Team not found' });
+        }
+        // console.log(team)
+        const token = await Token.findOne({ teamId: team._id });
+
+        if (!token) {
+            return res.status(404).json({ error: 'Token not found' });
+        }
+
+        const currentTime = new Date();
+        const tokenCreationTime = token.createdAt;
+
+        const timeDifference = (currentTime - tokenCreationTime) / (1000 * 60); // Difference in minutes
+
+        console.log('+++++',timeDifference)
+        if (timeDifference > 2) {
+            // Token expired, prompt for a new token
+            return res.status(401).json({ error: 'Token expired. Ask leader to generate a new token.' });
+        }
+        if (code !== token.token) {
+            return res.status(401).json({ error: 'Incorrect token' });
+        }
+
+        await User.findOneAndUpdate({ _id: userID }, { $set: { teamId: team.id, teamRole: teamRole.MEMBER  } });
+
+        team.members.push(userID);
 
         await team.save();
-        
-        res.status(200).json({ message: 'You have joined the team!' });
-      } catch (error) {
+
+        return res.status(200).json({ message: 'You have joined the team!' });
+    } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Asks leader to generate new token' });
-      }
+        return res.status(500).json({ error: 'Asks leader to generate new token' });
+    }
 }
 
-exports.leaveteam=async(req,res,next)=>{
-    try{
-        const userId=req.user._id;
+exports.leaveteam = async (req, res, next) => {
+    try {
+        const userId = req.user._id;
         const user = await User.findById(userId);
 
         // Check if the user is already part of a team
@@ -342,8 +341,8 @@ exports.leaveteam=async(req,res,next)=>{
         res.status(200).json({
             message: "User has left the team successfully",
         });
-    }catch(error){
+    } catch (error) {
         console.log(error);
-        res.status(500).json({error:'Something went wrong'})
+        res.status(500).json({ error: 'Something went wrong' })
     }
 }

@@ -19,10 +19,6 @@ const teamSchema = mongoose.Schema(
         leaderEmail: {
             type: String
         },
-        teamID: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "TeamModel"
-        },
         isQualified: {
             type: Boolean
         },
@@ -32,10 +28,7 @@ const teamSchema = mongoose.Schema(
         members:{
             type:[String]
         },
-        teamToken:{
-            type:Boolean
-        },
-        AccessToken:{
+        teamCode:{
             type:String
         }
     },
