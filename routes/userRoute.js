@@ -4,8 +4,8 @@ const team = require('../controllers/team/team');
 const auth = require('../middleware/authmiddleware');
 const userController = require('../controllers/user/userController');
 
-router.route('/hasFilledDetails')
-    .get(auth, userController.hasFilledDetails)
+router.route('/userDetails')
+    .get(auth, userController.userDetails)
 
 router.route('/fillUserDetails')
     .post(auth, userController.fillUserDetails)
