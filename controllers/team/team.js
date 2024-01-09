@@ -138,8 +138,9 @@ exports.deleteTeam = (async (req, res) => {
         { teamId: null, teamRole: null }
     );
 
-    res.status(200).json({
-        message: "Team Deleted Successfully",
+    return res.status(200).json({
+        message: "Team Deleted Successfully",   
+        status: "success"
     });
 })
 
