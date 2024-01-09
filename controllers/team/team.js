@@ -271,7 +271,7 @@ exports.getTeamToken = async (req, res, next) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 };
-
+//
 exports.jointeam = async (req, res, next) => {
     try {
         const userID = req.user._id;
