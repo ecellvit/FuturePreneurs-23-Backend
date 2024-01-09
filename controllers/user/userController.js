@@ -56,11 +56,11 @@ exports.fillUserDetails = catchAsync(async (req, res, next) => {
 
 exports.leaveTeam = catchAsync(async (req, res, next) => {
     //validating teamid
-    if (req.params.teamId.length !== objectIdLength) {
-        return next(
-            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
-        );
-    }
+    // if (req.params.teamId.length !== objectIdLength) {
+    //     return next(
+    //         new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+    //     );
+    // }
 
     const team = await Team.findById({ _id: req.params.teamId }).populate([
         "teamLeaderId",
