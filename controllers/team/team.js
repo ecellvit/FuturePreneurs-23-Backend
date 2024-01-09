@@ -258,7 +258,6 @@ exports.getTeamToken = async (req, res, next) => {
             const tokenCreationTime = token.createdAt;
 
             const timeDifference = (currentTime - tokenCreationTime) / (1000 * 60); // Difference in minutes
-
             if (timeDifference > 10) {
                 // Token expired, generate a new token
                 const newTeamCode = customAlphabet("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 10)();
