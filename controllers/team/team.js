@@ -255,7 +255,7 @@ exports.getTeamToken = async (req, res, next) => {
 
             const timeDifference = (currentTime - tokenCreationTime) / (1000 * 60); // Difference in minutes
 
-            if (timeDifference > 2) {
+            if (timeDifference > 10) {
                 // Token expired, generate a new token
                 const newTeamCode = customAlphabet("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 10)();
                 await Token.findOneAndUpdate({ teamId: team._id }, { $set: { token: newTeamCode } });
@@ -294,8 +294,7 @@ exports.jointeam = async (req, res, next) => {
 
         const timeDifference = (currentTime - tokenCreationTime) / (1000 * 60); // Difference in minutes
 
-        console.log('+++++',timeDifference)
-        if (timeDifference > 2) {
+        if (timeDifference > 10) {
             // Token expired, prompt for a new token
             return res.status(401).json({ error: 'Token expired. Ask leader to generate a new token.' });
         }
