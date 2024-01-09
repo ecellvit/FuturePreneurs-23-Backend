@@ -26,7 +26,7 @@ exports.userDetails = catchAsync(async (req, res, next) => {
         user: user,
     });
 });
-// to do: update the hasfilleddetials to be true
+
 exports.fillUserDetails = catchAsync(async (req, res, next) => {
     try{
     const user = await User.findById(req.user._id);
@@ -111,4 +111,27 @@ exports.leaveTeam = catchAsync(async (req, res, next) => {
         error: false,
         message: "Leaving Team Successfull",
     });
+});
+
+
+exports.consent = catchAsync(async (req, res, next) => {
+    try{
+
+    await User.findByIdAndUpdate(req.user._id,{
+        $set:{
+            consent: req.body.consent
+        }
+    })
+    return res.status(200).json({
+        message:"user consent updated successfully",
+        status:"success"
+    })
+}catch(error){
+    console.error(error);
+    return res.status(404).json({
+        message:"something went wrong"
+    })
+}
+    
+    
 });

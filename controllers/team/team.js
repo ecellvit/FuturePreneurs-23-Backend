@@ -238,7 +238,8 @@ exports.getTeamToken = async (req, res, next) => {
             await Team.findOneAndUpdate({ _id: team._id }, { $set: { teamCode: teamCode } });
 
             return res.status(200).json({
-                "teamCode": teamCode
+                "teamCode": teamCode,
+                "teamName": team.teamName
             });
 
         } 
@@ -260,9 +261,9 @@ exports.getTeamToken = async (req, res, next) => {
                 await Token.findOneAndUpdate({ teamId: team._id }, { $set: { token: newTeamCode } });
                 await Team.findOneAndUpdate({ _id: team._id }, { $set: { teamCode: newTeamCode } });
 
-                return res.status(200).json({ "teamCode": newTeamCode });
+                return res.status(200).json({ "teamCode": newTeamCode, "teamName": team.teamName });
             } else {
-                return res.status(200).json({ "teamCode": token.token });
+                return res.status(200).json({ "teamCode": token.token, "teamName": team.teamName });
             }
         }
    

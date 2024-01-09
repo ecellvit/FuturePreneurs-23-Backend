@@ -14,4 +14,7 @@ router.route('/fillUserDetails')
 router.route('/leaveTeam/:teamId')
     .post(auth, userController.leaveTeam)
 
+router.route('/consent')
+    .post(auth, userController.consent)
+
 module.exports = router;

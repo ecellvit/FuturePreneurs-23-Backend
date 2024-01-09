@@ -78,6 +78,10 @@ const userSchema = new Schema(
         teamRole:{
             type:String,
             default: null
+        },
+        consent:{
+            type:Boolean,
+            default: false
         }
         
     },
