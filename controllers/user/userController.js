@@ -70,7 +70,9 @@ exports.leaveTeam = catchAsync(async (req, res, next) => {
     //validate team id
     if (!team) {
         return next(
-            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+            new AppError("Invalid TeamId", 412, 
+            // errorCodes.INVALID_TEAM_ID
+            )
         );
     }
 
@@ -82,7 +84,7 @@ exports.leaveTeam = catchAsync(async (req, res, next) => {
             new AppError(
                 "User is not part of given TeamID or user isn't part of any Team",
                 412,
-                errorCodes.INVALID_USERID_FOR_TEAMID
+                // errorCodes.INVALID_USERID_FOR_TEAMID
             )
         );
     }
@@ -93,7 +95,7 @@ exports.leaveTeam = catchAsync(async (req, res, next) => {
             new AppError(
                 "Leader can't Leave the Team",
                 412,
-                errorCodes.USER_IS_LEADER
+                // errorCodes.USER_IS_LEADER
             )
         );
     }
