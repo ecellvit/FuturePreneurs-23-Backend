@@ -11,19 +11,19 @@ const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.CLIENT_ID);
 const { hasFilledDetailsBodyValidation } = require('./validationSchema');
 
-exports.hasFilledDetails = catchAsync(async (req, res, next) => {
+exports.userDetails = catchAsync(async (req, res, next) => {
     const user = await User.findById(req.user._id);
 
-    if(user.hasFilledDetails){
-        return res.status(201).json({
-            message: "User has filled details",
-            hasFilledDetails: user.hasFilledDetails,
-        });
-    }
+    // if(user.hasFilledDetails){
+    //     return res.status(201).json({
+    //         message: "User has filled details",
+    //         hasFilledDetails: user.hasFilledDetails,
+    //     });
+    // }
 
     return res.status(201).json({
-        message: "User has not filled details",
-        hasFilledDetails: user.hasFilledDetails,
+        message: "User details sent sucessfully",
+        user: user,
     });
 });
 // to do: update the hasfilleddetials to be true
