@@ -287,6 +287,11 @@ exports.jointeam = async (req, res, next) => {
         if (!token) {
             return res.status(404).json({ error: 'Token not found' });
         }
+        if(team.members.length==4){
+            res.send(404).json({
+                message:"At most 4 members can join the team"
+            })
+        }
 
         const currentTime = new Date();
         const tokenCreationTime = token.createdAt;
