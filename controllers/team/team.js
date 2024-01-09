@@ -238,7 +238,8 @@ exports.getTeamToken = async (req, res, next) => {
             await Team.findOneAndUpdate({ _id: team._id }, { $set: { teamCode: teamCode } });
 
             return res.status(200).json({
-                "teamCode": teamCode
+                "teamCode": teamCode,
+                "teamName":teamName
             });
 
         } 
@@ -288,7 +289,7 @@ exports.jointeam = async (req, res, next) => {
             return res.status(404).json({ error: 'Token not found' });
         }
         if(team.members.length==4){
-            res.send(404).json({
+            return res.status(404).json({
                 message:"At most 4 members can join the team"
             })
         }
