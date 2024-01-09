@@ -129,6 +129,10 @@ exports.deleteTeam = (async (req, res) => {
         _id: req.params.teamId,
     });
 
+    await Token.findOneAndDelete({
+        teamId: req.params.teamId,
+    });
+
     await User.findByIdAndUpdate(
         { _id: req.user._id },
         { teamId: null, teamRole: null }
@@ -320,7 +324,12 @@ exports.leaveteam = async (req, res, next) => {
         const userId = req.user._id;
         const user = await User.findById(userId);
 
-        // Check if the user is already part of a team
+        if (user.teamRole != "1") {
+            return res.status(401).json({
+                message: "Leader cant leave the team",
+            });
+        }
+        // Check if the user is part of a team
         if (!user.teamId) {
             return res.status(401).json({
                 message: "User is not part of any team",
