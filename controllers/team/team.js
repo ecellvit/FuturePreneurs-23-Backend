@@ -156,38 +156,35 @@ exports.removeMember = (async (req, res, next) => {
     //     );
     // }
     //checking for invalid team id
-    if (req.params.teamId.length !== objectIdLength) {
-        return next(
-            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
-        );
-    }
+    // if (req.params.teamId.length !== objectIdLength) {
+    //     return next(
+    //         new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+    //     );
+    // }
+    
 
     //validating teamid
     const team = await Team.findById({ _id: req.params.teamId });
 
     if (!team) {
-        return next(
-            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
-        );
+            return res.status(401).json({
+                message: "Invalid UserId to Remove"
+            })
     }
 
     //checking whether user to remove id is valid
     const userToRemove = await User.findById({ _id: req.body.userId });
     if (!userToRemove) {
-        return next(
-            new AppError("Invalid UserId to Remove", 412, errorCodes.INVALID_USERID)
-        );
+        return res.status(401).json({
+            message: "Invalid UserId to Remove"
+        })
     }
 
     //check whether user belongs to the given team and role
     if (team.teamLeaderId.toString() !== req.user._id) {
-        return next(
-            new AppError(
-                "User doesn't belong to the team or user isn't a leader",
-                412,
-                errorCodes.INVALID_USERID_FOR_TEAMID_OR_USER_NOT_LEADER
-            )
-        );
+        return res.status(401).json({
+            message: "User doesn't belong to the team or user isn't a leader"
+        })
     }
 
     //checking whether user to remove belomgs to the team id
@@ -195,13 +192,9 @@ exports.removeMember = (async (req, res, next) => {
         userToRemove.teamId == null ||
         userToRemove.teamId.toString() !== req.params.teamId
     ) {
-        return next(
-            new AppError(
-                "User to remove and TeamId didnt Match",
-                412,
-                errorCodes.INVALID_USERID_FOR_TEAMID
-            )
-        );
+        return res.status(401).json({
+            message: "User to remove and TeamId didnt Match"
+        })
     }
 
     //updating user teamid and teamrole
