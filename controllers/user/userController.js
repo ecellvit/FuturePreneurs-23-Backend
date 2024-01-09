@@ -36,11 +36,12 @@ exports.fillUserDetails = catchAsync(async (req, res, next) => {
     user.mob=req.body.mob;
     await user.save();
     return res.status(200).json({
-        message:"user details have been saved successfully"
+        message:"user details have been saved successfully",
+        status:"success"
     })
 }catch(error){
     console.error(error);
-    res.status(404).json({
+    return res.status(404).json({
         message:"something went wrong"
     })
 }
