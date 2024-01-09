@@ -319,6 +319,21 @@ exports.jointeam = async (req, res, next) => {
     }
 }
 
+exports.getTeamViaToken = async (req, res, next) => {
+    try {
+        const code = req.body.teamCode;
+        const team = await Team.findOne({ teamCode: code });
+        if (!team) {
+            return res.status(404).json({ error: 'Team not found' });
+        }
+
+        return res.status(200).json({ message: 'Team details sent sucessfullt!', teamDetails: team });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Team Not found' });
+    }
+}
+
 exports.leaveteam = async (req, res, next) => {
     try {
         const userId = req.user._id;

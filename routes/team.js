@@ -21,6 +21,9 @@ router.route('/getTeamCode')
     
 router.route('/jointeam')
     .post( auth,team.jointeam)   
+
+router.route('/getTeamViaToken')
+    .post( auth,team.getTeamViaToken)   
     
 router.route('/leaveTeam')
     .post(auth,team.leaveteam)
