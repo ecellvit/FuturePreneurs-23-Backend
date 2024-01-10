@@ -37,7 +37,7 @@ exports.fillUserDetails = catchAsync(async (req, res, next) => {
     user.firstName=req.body.firstName;
     user.lastName=req.body.lastName;
     user.regNo=req.body.regNo;
-    user.mob=req.body.mob;
+    user.mobno=req.body.mobno;
     await user.save();
     await User.findByIdAndUpdate(user._id,{
         $set:{
