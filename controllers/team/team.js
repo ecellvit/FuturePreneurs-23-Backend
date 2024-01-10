@@ -139,7 +139,7 @@ exports.deleteTeam = (async (req, res) => {
     );
 
     return res.status(200).json({
-        message: "Team Deleted Successfully",   
+        message: "Team Deleted Successfully",
         status: "success"
     });
 })
@@ -162,15 +162,15 @@ exports.removeMember = (async (req, res, next) => {
     //         new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
     //     );
     // }
-    
+
 
     //validating teamid
     const team = await Team.findById({ _id: req.params.teamId });
 
     if (!team) {
-            return res.status(401).json({
-                message: "Invalid UserId to Remove"
-            })
+        return res.status(401).json({
+            message: "Invalid UserId to Remove"
+        })
     }
 
     //checking whether user to remove id is valid
@@ -241,7 +241,7 @@ exports.getTeamToken = async (req, res, next) => {
                 "teamName": team.teamName
             });
 
-        } 
+        }
         else {
             const token = await Token.findOne({ teamId: team._id });
 
@@ -252,8 +252,8 @@ exports.getTeamToken = async (req, res, next) => {
             const currentTime = new Date();
             const tokenCreationTime = token.createdAt;
             const timeDifference = (currentTime - tokenCreationTime) / (1000 * 60); // Difference in minutes
-            console.log("-====",tokenCreationTime)
-            console.log("-====",currentTime)
+            console.log("-====", tokenCreationTime)
+            console.log("-====", currentTime)
             if (timeDifference > 10) {
                 // Token expired, generate a new token
                 const newTeamCode = customAlphabet("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 10)();
@@ -265,7 +265,7 @@ exports.getTeamToken = async (req, res, next) => {
                 return res.status(200).json({ "teamCode": token.token, "teamName": team.teamName });
             }
         }
-   
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Internal server error' });
@@ -275,12 +275,22 @@ exports.getTeamToken = async (req, res, next) => {
 exports.jointeam = async (req, res, next) => {
     try {
         const userID = req.user._id;
+        const user = await User.findById({ _id: req.user._id });
+
+        // if user  is already in a team
+        if (user.teamId) {
+            return res.status(401).json({ error: 'User already part of a Team' });
+
+        }
         const code = req.body.teamCode;
         const team = await Team.findOne({ teamCode: code });
         //check if user is not a part of any team
         if (!team) {
             return res.status(404).json({ error: 'Team not found' });
         }
+        if (team.members.length === 4) {
+            return res.status(401).json({ error: 'Team is Full' });
+          }
         // console.log(team)
         const token = await Token.findOne({ teamId: team._id });
 
@@ -301,11 +311,16 @@ exports.jointeam = async (req, res, next) => {
             return res.status(401).json({ error: 'Incorrect token' });
         }
 
-        await User.findOneAndUpdate({ _id: userID }, { $set: { teamId: team.id, teamRole: teamRole.MEMBER  } });
+        await User.findOneAndUpdate({ _id: userID }, { $set: { teamId: team.id, teamRole: teamRole.MEMBER } });
 
-        team.members.push(userID);
-
-        await team.save();
+        await Team.findOneAndUpdate(
+            {
+              _id: team._id,
+            },
+            {
+              $push: { members: req.user._id },
+            }
+          );
 
         return res.status(200).json({ message: 'You have joined the team!' });
     } catch (error) {
