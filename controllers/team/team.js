@@ -231,6 +231,7 @@ exports.getTeamToken = async (req, res, next) => {
             const newToken = await new Token({
                 teamId: team._id,
                 token: teamCode,
+                createdAt: new Date()
             }).save();
 
             await Team.findOneAndUpdate({ _id: team._id }, { $set: { teamCode: teamCode } });
