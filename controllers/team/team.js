@@ -129,13 +129,18 @@ exports.deleteTeam = (async (req, res) => {
         _id: req.params.teamId,
     });
 
+    await Token.findOneAndDelete({
+        teamId: req.params.teamId,
+    });
+
     await User.findByIdAndUpdate(
         { _id: req.user._id },
         { teamId: null, teamRole: null }
     );
 
-    res.status(200).json({
+    return res.status(200).json({
         message: "Team Deleted Successfully",
+        status: "success"
     });
 })
 
@@ -152,38 +157,35 @@ exports.removeMember = (async (req, res, next) => {
     //     );
     // }
     //checking for invalid team id
-    if (req.params.teamId.length !== objectIdLength) {
-        return next(
-            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
-        );
-    }
+    // if (req.params.teamId.length !== objectIdLength) {
+    //     return next(
+    //         new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+    //     );
+    // }
+
 
     //validating teamid
     const team = await Team.findById({ _id: req.params.teamId });
 
     if (!team) {
-        return next(
-            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
-        );
+        return res.status(401).json({
+            message: "Invalid UserId to Remove"
+        })
     }
 
     //checking whether user to remove id is valid
     const userToRemove = await User.findById({ _id: req.body.userId });
     if (!userToRemove) {
-        return next(
-            new AppError("Invalid UserId to Remove", 412, errorCodes.INVALID_USERID)
-        );
+        return res.status(401).json({
+            message: "Invalid UserId to Remove"
+        })
     }
 
     //check whether user belongs to the given team and role
     if (team.teamLeaderId.toString() !== req.user._id) {
-        return next(
-            new AppError(
-                "User doesn't belong to the team or user isn't a leader",
-                412,
-                errorCodes.INVALID_USERID_FOR_TEAMID_OR_USER_NOT_LEADER
-            )
-        );
+        return res.status(401).json({
+            message: "User doesn't belong to the team or user isn't a leader"
+        })
     }
 
     //checking whether user to remove belomgs to the team id
@@ -191,13 +193,9 @@ exports.removeMember = (async (req, res, next) => {
         userToRemove.teamId == null ||
         userToRemove.teamId.toString() !== req.params.teamId
     ) {
-        return next(
-            new AppError(
-                "User to remove and TeamId didnt Match",
-                412,
-                errorCodes.INVALID_USERID_FOR_TEAMID
-            )
-        );
+        return res.status(401).json({
+            message: "User to remove and TeamId didnt Match"
+        })
     }
 
     //updating user teamid and teamrole
@@ -233,16 +231,17 @@ exports.getTeamToken = async (req, res, next) => {
             const newToken = await new Token({
                 teamId: team._id,
                 token: teamCode,
+                createdAt: new Date()
             }).save();
 
             await Team.findOneAndUpdate({ _id: team._id }, { $set: { teamCode: teamCode } });
 
             return res.status(200).json({
                 "teamCode": teamCode,
-                "teamName":teamName
+                "teamName": team.teamName
             });
 
-        } 
+        }
         else {
             const token = await Token.findOne({ teamId: team._id });
 
@@ -252,21 +251,21 @@ exports.getTeamToken = async (req, res, next) => {
 
             const currentTime = new Date();
             const tokenCreationTime = token.createdAt;
-
             const timeDifference = (currentTime - tokenCreationTime) / (1000 * 60); // Difference in minutes
-
-            if (timeDifference > 2) {
+            console.log("-====", tokenCreationTime)
+            console.log("-====", currentTime)
+            if (timeDifference > 10) {
                 // Token expired, generate a new token
                 const newTeamCode = customAlphabet("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789", 10)();
-                await Token.findOneAndUpdate({ teamId: team._id }, { $set: { token: newTeamCode } });
+                await Token.findOneAndUpdate({ teamId: team._id }, { $set: { token: newTeamCode, createdAt: currentTime } });
                 await Team.findOneAndUpdate({ _id: team._id }, { $set: { teamCode: newTeamCode } });
 
-                return res.status(200).json({ "teamCode": newTeamCode });
+                return res.status(200).json({ "teamCode": newTeamCode, "teamName": team.teamName });
             } else {
-                return res.status(200).json({ "teamCode": token.token });
+                return res.status(200).json({ "teamCode": token.token, "teamName": team.teamName });
             }
         }
-   
+
     } catch (error) {
         console.error(error);
         return res.status(500).json({ error: 'Internal server error' });
@@ -276,12 +275,22 @@ exports.getTeamToken = async (req, res, next) => {
 exports.jointeam = async (req, res, next) => {
     try {
         const userID = req.user._id;
+        const user = await User.findById({ _id: req.user._id });
+
+        // if user  is already in a team
+        if (user.teamId) {
+            return res.status(401).json({ error: 'User already part of a Team' });
+
+        }
         const code = req.body.teamCode;
         const team = await Team.findOne({ teamCode: code });
         //check if user is not a part of any team
         if (!team) {
             return res.status(404).json({ error: 'Team not found' });
         }
+        if (team.members.length === 4) {
+            return res.status(401).json({ error: 'Team is Full' });
+          }
         // console.log(team)
         const token = await Token.findOne({ teamId: team._id });
 
@@ -299,8 +308,7 @@ exports.jointeam = async (req, res, next) => {
 
         const timeDifference = (currentTime - tokenCreationTime) / (1000 * 60); // Difference in minutes
 
-        console.log('+++++',timeDifference)
-        if (timeDifference > 2) {
+        if (timeDifference > 10) {
             // Token expired, prompt for a new token
             return res.status(401).json({ error: 'Token expired. Ask leader to generate a new token.' });
         }
@@ -308,11 +316,16 @@ exports.jointeam = async (req, res, next) => {
             return res.status(401).json({ error: 'Incorrect token' });
         }
 
-        await User.findOneAndUpdate({ _id: userID }, { $set: { teamId: team.id, teamRole: teamRole.MEMBER  } });
+        await User.findOneAndUpdate({ _id: userID }, { $set: { teamId: team.id, teamRole: teamRole.MEMBER } });
 
-        team.members.push(userID);
-
-        await team.save();
+        await Team.findOneAndUpdate(
+            {
+              _id: team._id,
+            },
+            {
+              $push: { members: req.user._id },
+            }
+          );
 
         return res.status(200).json({ message: 'You have joined the team!' });
     } catch (error) {
@@ -321,12 +334,32 @@ exports.jointeam = async (req, res, next) => {
     }
 }
 
+exports.getTeamViaToken = async (req, res, next) => {
+    try {
+        const code = req.body.teamCode;
+        const team = await Team.findOne({ teamCode: code });
+        if (!team) {
+            return res.status(404).json({ error: 'Team not found' });
+        }
+
+        return res.status(200).json({ message: 'Team details sent sucessfullt!', teamDetails: team });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ error: 'Team Not found' });
+    }
+}
+
 exports.leaveteam = async (req, res, next) => {
     try {
         const userId = req.user._id;
         const user = await User.findById(userId);
 
-        // Check if the user is already part of a team
+        if (user.teamRole != "1") {
+            return res.status(401).json({
+                message: "Leader cant leave the team",
+            });
+        }
+        // Check if the user is part of a team
         if (!user.teamId) {
             return res.status(401).json({
                 message: "User is not part of any team",

@@ -13,7 +13,7 @@ router.route('/deleteTeam/:teamId')
     .post(auth,team.deleteTeam)  
 
 router.route('/remove/:teamId')
-    .get(auth, team.removeMember)     
+    .post(auth, team.removeMember)     
 
 
 router.route('/getTeamCode')
@@ -21,6 +21,9 @@ router.route('/getTeamCode')
     
 router.route('/jointeam')
     .post( auth,team.jointeam)   
+
+router.route('/getTeamViaToken')
+    .post( auth,team.getTeamViaToken)   
     
 router.route('/leaveTeam')
     .post(auth,team.leaveteam)

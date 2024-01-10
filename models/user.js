@@ -76,7 +76,12 @@ const userSchema = new Schema(
             default: Date.now(),
         },
         teamRole:{
-            type:String
+            type:String,
+            default: null
+        },
+        consent:{
+            type:Boolean,
+            default: false
         }
         
     },

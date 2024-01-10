@@ -10,6 +10,10 @@ const User = require('../../models/user');
 const { OAuth2Client } = require("google-auth-library");
 const client = new OAuth2Client(process.env.CLIENT_ID);
 const { hasFilledDetailsBodyValidation } = require('./validationSchema');
+const {
+    teamRole,
+    // objectIdLength
+} = require("../../utils/constants");
 
 exports.userDetails = catchAsync(async (req, res, next) => {
     const user = await User.findById(req.user._id);
@@ -26,14 +30,14 @@ exports.userDetails = catchAsync(async (req, res, next) => {
         user: user,
     });
 });
-// to do: update the hasfilleddetials to be true
+
 exports.fillUserDetails = catchAsync(async (req, res, next) => {
     try{
     const user = await User.findById(req.user._id);
     user.firstName=req.body.firstName;
     user.lastName=req.body.lastName;
     user.regNo=req.body.regNo;
-    user.mob=req.body.mob;
+    user.mobno=req.body.mobno;
     await user.save();
     await User.findByIdAndUpdate(user._id,{
         $set:{
@@ -56,11 +60,11 @@ exports.fillUserDetails = catchAsync(async (req, res, next) => {
 
 exports.leaveTeam = catchAsync(async (req, res, next) => {
     //validating teamid
-    if (req.params.teamId.length !== objectIdLength) {
-        return next(
-            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
-        );
-    }
+    // if (req.params.teamId.length !== objectIdLength) {
+    //     return next(
+    //         new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+    //     );
+    // }
 
     const team = await Team.findById({ _id: req.params.teamId }).populate([
         "teamLeaderId",
@@ -70,7 +74,9 @@ exports.leaveTeam = catchAsync(async (req, res, next) => {
     //validate team id
     if (!team) {
         return next(
-            new AppError("Invalid TeamId", 412, errorCodes.INVALID_TEAM_ID)
+            new AppError("Invalid TeamId", 412, 
+            // errorCodes.INVALID_TEAM_ID
+            )
         );
     }
 
@@ -82,7 +88,7 @@ exports.leaveTeam = catchAsync(async (req, res, next) => {
             new AppError(
                 "User is not part of given TeamID or user isn't part of any Team",
                 412,
-                errorCodes.INVALID_USERID_FOR_TEAMID
+                // errorCodes.INVALID_USERID_FOR_TEAMID
             )
         );
     }
@@ -93,7 +99,7 @@ exports.leaveTeam = catchAsync(async (req, res, next) => {
             new AppError(
                 "Leader can't Leave the Team",
                 412,
-                errorCodes.USER_IS_LEADER
+                // errorCodes.USER_IS_LEADER
             )
         );
     }
@@ -111,4 +117,27 @@ exports.leaveTeam = catchAsync(async (req, res, next) => {
         error: false,
         message: "Leaving Team Successfull",
     });
+});
+
+
+exports.consent = catchAsync(async (req, res, next) => {
+    try{
+
+    await User.findByIdAndUpdate(req.user._id,{
+        $set:{
+            consent: req.body.consent
+        }
+    })
+    return res.status(200).json({
+        message:"user consent updated successfully",
+        status:"success"
+    })
+}catch(error){
+    console.error(error);
+    return res.status(404).json({
+        message:"something went wrong"
+    })
+}
+    
+    
 });
