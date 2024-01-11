@@ -1,20 +1,10 @@
 const Team = require('../../models/teamModel');
-const Token = require('../../models/TeamToken')
-
-
-
-
-
 const User = require('../../models/user');
-const jwt = require('jsonwebtoken');
-
-const auth = require('../../middleware/authmiddleware');
-
 
 
 exports.totalteams = async (req, res, next) => {
     try {
-        const totalTeams = await Team.countDocuments(); // Use countDocuments() to get the total count
+        const totalTeams = await Team.countDocuments(); 
         let count1 = 0;
         let count2=0;
         let count3=0;
@@ -41,7 +31,7 @@ exports.totalteams = async (req, res, next) => {
             }
         }
 
-        res.status(200).json({
+       return  res.status(200).json({
             "Total no of teams":totalTeams,
             "No of 4- member teams":count4,
             "No of 3- member teams":count3,
@@ -51,20 +41,20 @@ exports.totalteams = async (req, res, next) => {
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ error: 'Something went wrong' });
+       return res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
 exports.noofparticipants = async (req, res, next) => {
     try {
         const totalparticipants = await User.countDocuments(); 
-        res.status(200).json({
+        return res.status(200).json({
             "Total no of participants":totalparticipants,
            
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'Something went wrong' });
+        return res.status(500).json({ error: 'Something went wrong' });
     }
 };
 
