@@ -3,6 +3,7 @@ const path = require('path');
 const teamRoute = require('./routes/team');
 const authRoute = require('./routes/authRoutes');
 const userRoute = require('./routes/userRoute');
+const analyRoute = require('./routes/analyticsRoutes');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const app = express();
@@ -46,6 +47,7 @@ app.use(function (req, res, next) {
 app.use('/api/team',teamRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/user', userRoute);
+app.use('/api/analytics', analyRoute);
 
 
 
