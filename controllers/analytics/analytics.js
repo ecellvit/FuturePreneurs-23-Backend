@@ -10,7 +10,7 @@ exports.totalteams = async (req, res, next) => {
         let count3=0;
         let count4=0;
         const totalTeams1 = await Team.find();
-        console.log(totalTeams1);
+        // console.log(totalTeams1);
 
 
         const counts = req.body.count;
