@@ -54,31 +54,31 @@ exports.googleAuth = catchAsync(async (req, res, next) => {
 
     const user = await User.findOne({ email: emailFromClient });
    
-    if (!user) {
-        await new User({
-            email: emailFromClient,
-            hasFilledDetails: false,
-            firstName: null,
-            lastName: null,
-            regNo: null,
-            mobileNumber: null,
-            teamId: null,
-        }).save();
+    // if (!user) {
+    //     await new User({
+    //         email: emailFromClient,
+    //         hasFilledDetails: false,
+    //         firstName: null,
+    //         lastName: null,
+    //         regNo: null,
+    //         mobileNumber: null,
+    //         teamId: null,
+    //     }).save();
 
-        const user = await User.findOne({ email: emailFromClient });
-        const { accessToken, refreshToken } = await generateTokens(user);
+    //     const user = await User.findOne({ email: emailFromClient });
+    //     const { accessToken, refreshToken } = await generateTokens(user);
 
-        return res.status(201).json({
-            message: "User SignUp Succesfull",
-            accessToken,
-            refreshToken,
-        });
-    }
-    // if(!user){
-    //     return res.status(404).json({
-    //         message:"Registrations are closed."
-    //     })
+    //     return res.status(201).json({
+    //         message: "User SignUp Succesfull",
+    //         accessToken,
+    //         refreshToken,
+    //     });
     // }
+    if(!user){
+        return res.status(404).json({
+            message:"Registrations are closed."
+        })
+    }
     const { accessToken, refreshToken } = await generateTokens(user);
     console.log(accessToken);
     res.status(200).json({
