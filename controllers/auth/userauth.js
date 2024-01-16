@@ -53,7 +53,7 @@ exports.googleAuth = catchAsync(async (req, res, next) => {
     }
 
     const user = await User.findOne({ email: emailFromClient });
-
+    /*
     if (!user) {
         await new User({
             email: emailFromClient,
@@ -74,7 +74,12 @@ exports.googleAuth = catchAsync(async (req, res, next) => {
             refreshToken,
         });
     }
-    
+    */
+    if(!user){
+        res.status(404).json({
+            message:"Registrations are closed."
+        })
+    }
     const { accessToken, refreshToken } = await generateTokens(user);
     console.log(accessToken);
     res.status(200).json({
